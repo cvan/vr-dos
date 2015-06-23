@@ -23,25 +23,25 @@ var triggerKeyupEvent = gamepadInput.utils.triggerKeyupEvent;
 var axisXDownDir;
 var axisYDownDir;
 
-function triggerPreviousMoveOnReset(value) {
+function triggerPreviousMoveOnReset(value, axis, direction) {
   if (Math.abs(value) >= gamepadInput.config.axisThresholdReset) {
     return false;
   }
 
-  if (axisXDownDir === 'left') {
+  if (axisXDownDir === 'left' && direction !== 'left') {
     triggerKeypressEvent({key: 'ArrowLeft', keyCode: 37});
     triggerKeyupEvent({key: 'ArrowLeft', keyCode: 37});
   }
-  if (axisXDownDir === 'right') {
+  if (axisXDownDir === 'right' && direction !== 'right') {
     triggerKeypressEvent({key: 'ArrowRight', keyCode: 39});
     triggerKeyupEvent({key: 'ArrowRight', keyCode: 39});
   }
 
-  if (axisYDownDir === 'up') {
+  if (axisYDownDir === 'up' && direction !== 'up') {
     triggerKeypressEvent({key: 'ArrowUp', keyCode: 38});
     triggerKeyupEvent({key: 'ArrowUp', keyCode: 38});
   }
-  if (axisYDownDir === 'down') {
+  if (axisYDownDir === 'down' && direction !== 'down') {
     triggerKeypressEvent({key: 'ArrowDown', keyCode: 40});
     triggerKeyupEvent({key: 'ArrowDown', keyCode: 40});
   }
@@ -50,7 +50,7 @@ function triggerPreviousMoveOnReset(value) {
 }
 
 function moveX(gamepad, axis, value) {
-  triggerPreviousMoveOnReset(value);
+  triggerPreviousMoveOnReset(value, 'x', value > 0 ? 'right' : 'left');
 
   if (Math.abs(value) < gamepadInput.config.axisThresholdReset) {
     return false;
@@ -59,18 +59,18 @@ function moveX(gamepad, axis, value) {
   console.log('[stick x]', axis, value);
 
   if (value > 0) {
-    if (axisXDownDir !== 'left') {
-      triggerKeypressEvent({key: 'ArrowLeft', keyCode: 37});
-      triggerKeyupEvent({key: 'ArrowLeft', keyCode: 37});
-    }
+    // if (axisXDownDir !== 'left') {
+    //   triggerKeypressEvent({key: 'ArrowLeft', keyCode: 37});
+    //   triggerKeyupEvent({key: 'ArrowLeft', keyCode: 37});
+    // }
 
     triggerKeydownEvent({key: 'ArrowRight', keyCode: 39});
     axisXDownDir = 'right';
   } else {
-    if (axisXDownDir !== 'right') {
-      triggerKeypressEvent({key: 'ArrowRight', keyCode: 39});
-      triggerKeyupEvent({key: 'ArrowRight', keyCode: 39});
-    }
+    // if (axisXDownDir !== 'right') {
+    //   triggerKeypressEvent({key: 'ArrowRight', keyCode: 39});
+    //   triggerKeyupEvent({key: 'ArrowRight', keyCode: 39});
+    // }
 
     triggerKeydownEvent({key: 'ArrowLeft', keyCode: 37});
     axisXDownDir = 'left';
@@ -78,7 +78,7 @@ function moveX(gamepad, axis, value) {
 }
 
 function moveY(gamepad, axis, value) {
-  triggerPreviousMoveOnReset(value);
+  triggerPreviousMoveOnReset(value, 'y', value > 0 ? 'up' : 'down');
 
   if (Math.abs(value) < gamepadInput.config.axisThresholdReset) {
     return false;
@@ -87,21 +87,21 @@ function moveY(gamepad, axis, value) {
   console.log('[stick y]', axis, value);
 
   if (value > 0) {
-    if (axisYDownDir !== 'down') {
-      triggerKeypressEvent({key: 'ArrowDown', keyCode: 40});
-      triggerKeyupEvent({key: 'ArrowDown', keyCode: 40});
-    }
+    // if (axisYDownDir !== 'down') {
+    //   triggerKeypressEvent({key: 'ArrowUp', keyCode: 38});
+    //   triggerKeyupEvent({key: 'ArrowUp', keyCode: 38});
+    // }
 
-    triggerKeydownEvent({key: 'ArrowUp', keyCode: 38});
-    axisYDownDir = 'up';
-  } else {
-    if (axisYDownDir !== 'up') {
-      triggerKeypressEvent({key: 'ArrowUp', keyCode: 38});
-      triggerKeyupEvent({key: 'ArrowUp', keyCode: 38});
-    }
-
-    triggerKeydownEvent({key: 'ArrowDown', keyCode: 40});
+    triggerKeydownEvent({key: 'ArrowDown', keyCode: 38});
     axisYDownDir = 'down';
+  } else {
+    // if (axisYDownDir !== 'up') {
+    //   triggerKeypressEvent({key: 'ArrowDown', keyCode: 40});
+    //   triggerKeyupEvent({key: 'ArrowDown', keyCode: 40});
+    // }
+
+    triggerKeydownEvent({key: 'ArrowUp', keyCode: 40});
+    axisYDownDir = 'up';
   }
 }
 

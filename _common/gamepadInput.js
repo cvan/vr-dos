@@ -95,6 +95,8 @@ var triggerKeyEvent = gamepadInput.utils.triggerKeyEvent = function (type, opts)
   });
   (opts.el || document).dispatchEvent(evt);
 
+  console.log('º', type, evt);
+
   return evt;
 };
 
