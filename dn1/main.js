@@ -24,8 +24,6 @@ var axisXDownDir;
 var axisYDownDir;
 
 function triggerPreviousMoveOnReset(value) {
-  console.log('¬', Math.abs(value), gamepadInput.config.axisThresholdReset);
-
   if (Math.abs(value) >= gamepadInput.config.axisThresholdReset) {
     return false;
   }
@@ -52,16 +50,16 @@ function triggerPreviousMoveOnReset(value) {
 }
 
 function moveX(gamepad, axis, value) {
-  var proceed = triggerPreviousMoveOnReset(value);
+  triggerPreviousMoveOnReset(value);
 
-  if (!proceed) {
-    return;
+  if (Math.abs(value) < gamepadInput.config.axisThresholdReset) {
+    return false;
   }
 
   console.log('[stick x]', axis, value);
 
   if (value > 0) {
-    if (axisXDownDir === 'left') {
+    if (axisXDownDir !== 'left') {
       triggerKeypressEvent({key: 'ArrowLeft', keyCode: 37});
       triggerKeyupEvent({key: 'ArrowLeft', keyCode: 37});
     }
@@ -69,7 +67,7 @@ function moveX(gamepad, axis, value) {
     triggerKeydownEvent({key: 'ArrowRight', keyCode: 39});
     axisXDownDir = 'right';
   } else {
-    if (axisXDownDir === 'right') {
+    if (axisXDownDir !== 'right') {
       triggerKeypressEvent({key: 'ArrowRight', keyCode: 39});
       triggerKeyupEvent({key: 'ArrowRight', keyCode: 39});
     }
@@ -80,16 +78,16 @@ function moveX(gamepad, axis, value) {
 }
 
 function moveY(gamepad, axis, value) {
-  var proceed = triggerPreviousMoveOnReset(value);
+  triggerPreviousMoveOnReset(value);
 
-  if (!proceed) {
-    return;
+  if (Math.abs(value) < gamepadInput.config.axisThresholdReset) {
+    return false;
   }
 
   console.log('[stick y]', axis, value);
 
   if (value > 0) {
-    if (axisYDownDir === 'down') {
+    if (axisYDownDir !== 'down') {
       triggerKeypressEvent({key: 'ArrowDown', keyCode: 40});
       triggerKeyupEvent({key: 'ArrowDown', keyCode: 40});
     }
@@ -97,7 +95,7 @@ function moveY(gamepad, axis, value) {
     triggerKeydownEvent({key: 'ArrowUp', keyCode: 38});
     axisYDownDir = 'up';
   } else {
-    if (axisYDownDir === 'up') {
+    if (axisYDownDir !== 'up') {
       triggerKeypressEvent({key: 'ArrowUp', keyCode: 38});
       triggerKeyupEvent({key: 'ArrowUp', keyCode: 38});
     }
