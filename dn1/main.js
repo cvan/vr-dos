@@ -1,16 +1,16 @@
 ;(function () {
 
-document.addEventListener('keydown', function (e) {
-  console.log(e.type, e);
-});
+// document.addEventListener('keydown', function (e) {
+//   console.log(e.type, e);
+// });
 
-document.addEventListener('keyup', function (e) {
-  console.log(e.type, e);
-});
+// document.addEventListener('keyup', function (e) {
+//   console.log(e.type, e);
+// });
 
-document.addEventListener('keypress', function (e) {
-  console.log(e.type, e);
-});
+// document.addEventListener('keypress', function (e) {
+//   console.log(e.type, e);
+// });
 
 // window.addEventListener('gamepadbuttondown', function (e) {
 //   console.log('gamepad', e.gamepad, e.button);
@@ -234,6 +234,6 @@ P to pause
   }
 });
 
-gamepadInput.config.axisThresholdReset = 0.15;
+gamepadInput.config.axisThresholdReset = 0.5;
 
 })();
