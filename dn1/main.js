@@ -1,20 +1,17 @@
 ;(function () {
 
-document.addEventListener('keydown', function (e) {
-  console.log(e.type, e);
-});
+var timeSinceLast = {};
 
-// document.addEventListener('keyup', function (e) {
-//   console.log(e.type, e);
-// });
+function keyListener(e) {
+  var now = performance.now();
+  console.log(e.type, e, now - (timeSinceLast[e.type + '.' + e.which] || now));
+  timeSinceLast[e.type + '.' + e.which] = performance.now();
+}
 
-// document.addEventListener('keypress', function (e) {
-//   console.log(e.type, e);
-// });
+document.addEventListener('keydown', keyListener);
+document.addEventListener('keyup', keyListener);
+document.addEventListener('keypress', keyListener);
 
-// window.addEventListener('gamepadbuttondown', function (e) {
-//   console.log('gamepad', e.gamepad, e.button);
-// });
 
 var triggerKeydownEvent = gamepadInput.utils.triggerKeydownEvent;
 var triggerKeypressEvent = gamepadInput.utils.triggerKeypressEvent;
@@ -23,49 +20,51 @@ var triggerKeyupEvent = gamepadInput.utils.triggerKeyupEvent;
 var axisXDownDir;
 var axisYDownDir;
 
-var intervals = {};
+var intervals = {
+  up: {time: 0},
+  down: {time: 0},
+  left: {time: 0},
+  right: {time: 0},
+};
 
-function triggerPreviousMoveOnReset(value, axis, direction) {
-  if (Math.abs(value) >= gamepadInput.config.axisThresholdReset) {
-    return false;
-  }
 
-  if (axisXDownDir === 'left' && direction !== 'left') {
-    triggerKeypressEvent({key: 'ArrowLeft', keyCode: 37});
-    triggerKeyupEvent({key: 'ArrowLeft', keyCode: 37});
-  }
-  if (axisXDownDir === 'right' && direction !== 'right') {
-    triggerKeypressEvent({key: 'ArrowRight', keyCode: 39});
-    triggerKeyupEvent({key: 'ArrowRight', keyCode: 39});
-  }
-
-  if (axisYDownDir === 'up' && direction !== 'up') {
-    triggerKeypressEvent({key: 'ArrowUp', keyCode: 38});
-    triggerKeyupEvent({key: 'ArrowUp', keyCode: 38});
-  }
-  if (axisYDownDir === 'down' && direction !== 'down') {
-    triggerKeypressEvent({key: 'ArrowDown', keyCode: 40});
-    triggerKeyupEvent({key: 'ArrowDown', keyCode: 40});
-  }
-
-  return true;
+function _arrowLeftDown() {
+  triggerKeydownEvent({key: 'ArrowLeft', keyCode: 37});
+  return triggerKeypressEvent({key: 'ArrowLeft', keyCode: 37});
 }
 
-function _arrowLeft() {
-  return triggerKeydownEvent({key: 'ArrowLeft', keyCode: 37});
+function _arrowRightDown() {
+  triggerKeydownEvent({key: 'ArrowRight', keyCode: 39});
+  return triggerKeypressEvent({key: 'ArrowRight', keyCode: 39});
 }
 
-function arrowLeft() {
-  return throttle(_arrowLeft, gamepadInput.config.throttleTime)();
+function _arrowLeftUp() {
+  return triggerKeyupEvent({key: 'ArrowLeft', keyCode: 37});
 }
 
-function _arrowRight() {
-  return triggerKeydownEvent({key: 'ArrowRight', keyCode: 39});
+function _arrowRightUp() {
+  return triggerKeyupEvent({key: 'ArrowRight', keyCode: 39});
 }
 
-function arrowRight() {
-  return throttle(_arrowRight, gamepadInput.config.throttleTime)();
+
+function arrowLeftDown() {
+  return throttle(_arrowLeftDown, gamepadInput.config.throttleTime)();
 }
+
+function arrowRightDown() {
+  return throttle(_arrowRightDown, gamepadInput.config.throttleTime)();
+}
+
+function arrowLeftUp() {
+  delete axisXDownDir;
+  return throttle(_arrowLeftUp, gamepadInput.config.throttleTime)();
+}
+
+function arrowRightUp() {
+  delete axisXDownDir;
+  return throttle(_arrowRightUp, gamepadInput.config.throttleTime)();
+}
+
 
 function throttle(callback, limit) {
   limit = limit || 0;
@@ -85,76 +84,48 @@ function throttle(callback, limit) {
 
 
 function moveX(gamepad, axis, value) {
-  if (Math.abs(value) < gamepadInput.config.axisThresholdReset) {
-    console.log('resetting left, right');
-    clearInterval(intervals.left);
-    clearInterval(intervals.right);
-    return false;
-  }
-
-  // triggerPreviousMoveOnReset(value, 'x', value > 0 ? 'right' : 'left');
-
   console.log('[stick x]', axis, value);
 
   if (value > 0) {
-    // if (axisXDownDir !== 'left') {
-    //   triggerKeypressEvent({key: 'ArrowLeft', keyCode: 37});
-    //   triggerKeyupEvent({key: 'ArrowLeft', keyCode: 37});
-    // }
-    console.log('# right');
-    clearInterval(intervals.left);
+    if (Math.abs(value) > gamepadInput.config.axisThresholdReset) {
+      arrowRightDown();
 
-    intervals.right = setInterval(function () {
+      intervals.right = setInterval(function () {
 
-      arrowRight();
+        if (gamepad.axes[axis] <= gamepadInput.config.axisThresholdReset || axisXDownDir !== 'right') {
+          arrowRightUp();
+          return;
+        }
 
-    }, gamepadInput.config.throttleTime);
+        intervals.right.time = Math.abs(gamepad.axes[axis]) * gamepadInput.config.axisThresholdReset;
+        axisXDownDir = 'right';
 
-    // axisXDownDir = 'right';
+      }, intervals.right.time);
+    } else if (axisXDownDir === 'right') {
+      arrowRightUp();
+    }
   } else {
-    // if (axisXDownDir !== 'right') {
-    //   triggerKeypressEvent({key: 'ArrowRight', keyCode: 39});
-    //   triggerKeyupEvent({key: 'ArrowRight', keyCode: 39});
-    // }
-    console.log('# left');
-    clearInterval(intervals.right);
+    if (Math.abs(value) > gamepadInput.config.axisThresholdReset) {
+      arrowLeftDown();
 
-    intervals.left = setInterval(function () {
+      intervals.left = setInterval(function () {
 
-      arrowLeft();
+        if (gamepad.axes[axis] <= gamepadInput.config.axisThresholdReset * -1 || axisXDownDir !== 'left') {
+          arrowLeftUp();
+          return;
+        }
 
-    }, gamepadInput.config.throttleTime);
+        intervals.left.time = Math.abs(gamepad.axes[axis]) * gamepadInput.config.axisThresholdReset;
+        axisXDownDir = 'left';
 
-    // axisXDownDir = 'left';
+      }, intervals.left.time);
+    } else if (axisXDownDir === 'left') {
+      arrowRightUp();
+    }
   }
 }
 
 function moveY(gamepad, axis, value) {
-  // triggerPreviousMoveOnReset(value, 'y', value > 0 ? 'up' : 'down');
-
-  // if (Math.abs(value) < gamepadInput.config.axisThresholdReset) {
-  //   return false;
-  // }
-
-  // console.log('[stick y]', axis, value);
-
-  // if (value > 0) {
-  //   // if (axisYDownDir !== 'down') {
-  //   //   triggerKeypressEvent({key: 'ArrowUp', keyCode: 38});
-  //   //   triggerKeyupEvent({key: 'ArrowUp', keyCode: 38});
-  //   // }
-
-  //   triggerKeydownEvent({key: 'ArrowDown', keyCode: 38});
-  //   axisYDownDir = 'down';
-  // } else {
-  //   // if (axisYDownDir !== 'up') {
-  //   //   triggerKeypressEvent({key: 'ArrowDown', keyCode: 40});
-  //   //   triggerKeyupEvent({key: 'ArrowDown', keyCode: 40});
-  //   // }
-
-  //   triggerKeydownEvent({key: 'ArrowUp', keyCode: 40});
-  //   axisYDownDir = 'up';
-  // }
 }
 
 gamepadInput.assign({
@@ -286,7 +257,7 @@ P to pause
   }
 });
 
-gamepadInput.config.axisThresholdReset = 0.5;
-gamepadInput.config.throttleTime = 80;
+gamepadInput.config.axisThresholdReset = 0.5; // Axis range is `[|0|..|1|]`.
+gamepadInput.config.throttleTime = 80;  // Time is in milliseconds (average `keydown`/`keypress` fires every 60-80 ms).
 
 })();
