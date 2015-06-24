@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <script>
+
+(function () {
+
+var timeSinceLast = {};
+
+function keyListener(e) {
+  var now = performance.now();
+  console.log(e.type, e, now - (timeSinceLast[e.type + '.' + e.which] || now));
+  timeSinceLast[e.type + '.' + e.which] = performance.now();
+}
+
+document.addEventListener('keydown', keyListener);
+document.addEventListener('keyup', keyListener);
+document.addEventListener('keypress', keyListener);
+
+})();
+
+    </script>
+  </body>
+</html>
